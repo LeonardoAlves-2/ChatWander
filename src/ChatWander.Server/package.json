@@ -1,23 +1,24 @@
 {
-  "name": "chatwander-server",
+  "name": "chat-wander.server",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.ts",
+  "main": "src/index.ts",
   "scripts": {
     "dev": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules src/server.ts",
     "build": "tsc",
+    "start": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2"
-  },
   "devDependencies": {
     "@types/express": "^4.17.17",
     "prettier": "3.0.2",
     "ts-node-dev": "^2.0.0"
+  },
+  "dependencies": {
+    "@types/ws": "^8.5.5",
+    "ws": "^8.13.0"
   }
 }
