@@ -1,5 +1,4 @@
 import WebSocket, { WebSocketServer } from 'ws'
-import fs from 'fs'
 import { MessageConfig } from './messageConfig'
 
 export class ChatServer {
@@ -7,20 +6,19 @@ export class ChatServer {
     private clients: Set<WebSocket>
     private unmatchedClients: WebSocket[]
     private messagesConfig: MessageConfig
+    private messagesFilePath: string = './src/config/messages.json'
 
     constructor(port: number) {
         this.wss = new WebSocketServer({ port })
         this.clients = new Set()
         this.unmatchedClients = []
 
-        this.messagesConfig = MessageConfig.loadMessages(
-            './src/config/messages.json'
-        )
+        this.messagesConfig = MessageConfig.loadMessages(this.messagesFilePath)
 
-        this.wss.on('connection', (ws) => this.handleConnection(ws))
+        this.wss.on('connection', (ws: WebSocket) => this.handleConnection(ws))
     }
 
-    private handleConnection(client: WebSocket) {
+    private handleConnection(client: WebSocket): void {
         this.clients.add(client)
 
         if (this.unmatchedClients.length === 0) {
@@ -43,7 +41,7 @@ export class ChatServer {
         })
     }
 
-    private startChat(firstClient: WebSocket, secondClient: WebSocket) {
+    private startChat(firstClient: WebSocket, secondClient: WebSocket): void {
         this.sendMessage(firstClient, this.messagesConfig.messages.startChat)
 
         this.sendMessage(
@@ -51,15 +49,15 @@ export class ChatServer {
             this.messagesConfig.messages.connectedToAnother
         )
 
-        firstClient.on('message', (data) =>
+        firstClient.on('message', (data: WebSocket.Data) =>
             this.sendMessage(secondClient, data.toString())
         )
-        secondClient.on('message', (data) =>
+        secondClient.on('message', (data: WebSocket.Data) =>
             this.sendMessage(firstClient, data.toString())
         )
     }
 
-    private sendMessage(client: WebSocket, message: string) {
+    private sendMessage(client: WebSocket, message: string): void {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message)
         }
