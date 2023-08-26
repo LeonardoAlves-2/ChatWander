@@ -18,7 +18,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       next: (message) => {
         switch (message.type) {
           case MessageType.UserMessage:
-            // TODO: PASSAR OTHER PARA I18N
             this.messages.push({ ...message, author: 'Other' });
             break;
           case MessageType.ServerMessage:

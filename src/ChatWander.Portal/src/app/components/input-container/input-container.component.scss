@@ -3,12 +3,13 @@
     margin-top: 20px;
     width: 100%;
     display: flex;
+    justify-content: flex-start;
 
     .message-input {
       flex: 1;
       width: 80%;
       padding: 10px;
-      border: 0px solid;
+      border: 1px solid;
       border-radius: 5px;
       font-size: 14px;
       margin-bottom: 10px;
@@ -26,9 +27,9 @@
 
     .send-button,
     .find-button {
-      width: 90%;
+      width: 100px;
       padding: 10px 20px;
-      height: 42%;
+      height: 100px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
@@ -54,11 +55,16 @@
     }
   }
 
+  &-actions {
+    display: flex;
+  }
+
   @media (prefers-color-scheme: dark) {
     &-container {
       .message-input {
         background-color: #433e47;
         color: #e5e5e6;
+        border: 0px;
       }
 
       .send-button {
@@ -73,24 +79,24 @@
 
   @media (max-width: 768px) {
       &-actions {
-        display: block;
-        // justify-content: center;
+        display: flex;
+        justify-content: center;
       }
 
       &-container {
-        // display: block;
+        display: block;
 
         .send-button,
         .find-button {
-          // margin-left: unset;
-          // margin-bottom: unset;
-          // width: 50%;
-          // height: auto;
+          margin-left: unset;
+          margin-bottom: unset;
+          width: 50%;
+          height: auto;
 
         }
 
         .send-button {
-          // margin-right: 10px;
+          margin-right: 10px;
         }
 
         .message-input {

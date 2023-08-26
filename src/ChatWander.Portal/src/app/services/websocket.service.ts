@@ -1,5 +1,6 @@
+import { environment } from './../../configs/config';
 import { Injectable, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, filter } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, filter, takeUntil } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { Message, MessageType } from '../shared/message-model';
 
@@ -14,6 +15,7 @@ export class WebSocketService implements OnDestroy {
    * Create a WebSocketSubject with a default connection.
    */
   private socket$: WebSocketSubject<Message> = this.createWebSocket();
+  private unsubscribe$: Subject<void> = new Subject<void>();
 
   ngOnDestroy(): void {
     this.disconnect();
@@ -24,8 +26,7 @@ export class WebSocketService implements OnDestroy {
    * @returns {WebSocketSubject<Message>} The WebSocketSubject for the new connection.
    */
   private createWebSocket(): WebSocketSubject<Message> {
-    // TODO: PASSAR ME PARA ARQUIVO DE CONFIGURAÇÃO
-    return webSocket('ws://localhost:8080');
+    return webSocket(environment.websocketUrl);
   }
 
   /**
@@ -41,7 +42,7 @@ export class WebSocketService implements OnDestroy {
    * @returns {Observable<Message>} An Observable that emits incoming messages.
    */
   receive(): Observable<Message> {
-    return this.socket$.asObservable();
+    return this.socket$.asObservable().pipe(takeUntil(this.unsubscribe$));
   }
 
   /**
@@ -56,6 +57,9 @@ export class WebSocketService implements OnDestroy {
    * Disconnect from the current WebSocket
    */
   disconnect(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+
     if (!this.socket$.closed) this.socket$.complete();
   }
 }
