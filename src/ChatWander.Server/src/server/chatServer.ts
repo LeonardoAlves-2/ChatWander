@@ -1,65 +1,107 @@
 import WebSocket, { WebSocketServer } from 'ws'
-import { MessageConfig } from './messageConfig'
+import { Messages } from './messages'
+import i18n from 'i18n'
+import { Message, MessageType } from './models/messageModel'
+import { ConnectionStatus } from './models/statusModel'
 
 export class ChatServer {
-    private wss: WebSocketServer
-    private clients: Set<WebSocket>
-    private unmatchedClients: WebSocket[]
-    private messagesConfig: MessageConfig
-    private messagesFilePath: string = './src/config/messages.json'
+    private webSocketServer: WebSocketServer
+    private clients: Map<WebSocket, WebSocket | null> = new Map()
+    private messagesConfig: Messages = new Messages()
 
     constructor(port: number) {
-        this.wss = new WebSocketServer({ port })
-        this.clients = new Set()
-        this.unmatchedClients = []
+        this.webSocketServer = new WebSocketServer({ port })
 
-        this.messagesConfig = MessageConfig.loadMessages(this.messagesFilePath)
-
-        this.wss.on('connection', (ws: WebSocket) => this.handleConnection(ws))
+        this.webSocketServer.on('connection', (ws: WebSocket, req) =>
+            this.handleConnection(ws, req)
+        )
     }
 
-    private handleConnection(client: WebSocket): void {
-        this.clients.add(client)
+    private handleConnection(client: WebSocket, req: any): void {
+        const acceptLanguageHeader = req.headers['accept-language']
+        i18n.setLocale(this.parseAcceptLanguageHeader(acceptLanguageHeader))
 
-        if (this.unmatchedClients.length === 0) {
-            this.unmatchedClients.push(client)
-            this.sendMessage(
-                client,
-                this.messagesConfig.messages.waitingForPair
-            )
-        } else {
-            const firstClient = client
-            const secondClient = this.unmatchedClients.pop()!
-            this.startChat(firstClient, secondClient)
+        this.clients.set(client, null)
+        this.sendServerMessage(client, this.messagesConfig.waitingForPair)
+
+        const waitingClient = this.getWaitingClient(client)
+        if (waitingClient) {
+            this.clients.set(waitingClient, client)
+            this.clients.set(client, waitingClient)
+            this.sendServerMessage(client, ConnectionStatus.Connected)
+            this.sendServerMessage(client, this.messagesConfig.startChat)
+
+            this.sendServerMessage(waitingClient, ConnectionStatus.Connected)
+            this.sendServerMessage(waitingClient, this.messagesConfig.startChat)
         }
 
+        client.on('message', (data: WebSocket.Data) => {
+            const partner = this.clients.get(client)
+            if (partner) {
+                this.sendMessage(partner, JSON.parse(data.toString()))
+            }
+        })
+
         client.on('close', () => {
-            this.clients.delete(client)
-            this.unmatchedClients = this.unmatchedClients.filter(
-                (unmatchedClient) => unmatchedClient !== client
-            )
+            const partner = this.clients.get(client)
+            if (partner) {
+                this.clients.delete(client)
+                this.clients.delete(partner)
+
+                this.sendServerMessage(partner, ConnectionStatus.Disconnected)
+                this.sendServerMessage(
+                    partner,
+                    this.messagesConfig.connectionClosed
+                )
+                partner.close()
+            }
         })
     }
 
-    private startChat(firstClient: WebSocket, secondClient: WebSocket): void {
-        this.sendMessage(firstClient, this.messagesConfig.messages.startChat)
+    private parseAcceptLanguageHeader(acceptLanguageHeader: string): string {
+        const languages = acceptLanguageHeader.split(',')
 
-        this.sendMessage(
-            secondClient,
-            this.messagesConfig.messages.connectedToAnother
-        )
+        const sortedLanguages = languages
+            .map((lang) => {
+                const [code, quality] = lang.trim().split(';q=')
+                return { code, quality: parseFloat(quality || '1') }
+            })
+            .sort((a, b) => b.quality - a.quality)
 
-        firstClient.on('message', (data: WebSocket.Data) =>
-            this.sendMessage(secondClient, data.toString())
-        )
-        secondClient.on('message', (data: WebSocket.Data) =>
-            this.sendMessage(firstClient, data.toString())
-        )
+        const preferredLanguage = sortedLanguages[0].code
+        const [languageCode] = preferredLanguage.split('-')
+
+        return languageCode
     }
 
-    private sendMessage(client: WebSocket, message: string): void {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(message)
+    private getWaitingClient(searcherWebSocket: WebSocket): WebSocket | null {
+        for (const [client, partner] of this.clients.entries()) {
+            if (
+                client !== searcherWebSocket &&
+                !(
+                    client.readyState === WebSocket.CLOSED ||
+                    client.readyState === WebSocket.CLOSING
+                ) &&
+                partner === null
+            ) {
+                return client
+            }
         }
+
+        return null
+    }
+
+    private sendMessage(client: WebSocket, message: Message): void {
+        if (client.readyState === WebSocket.OPEN) {
+            const messageJson = JSON.stringify(message)
+            client.send(messageJson)
+        }
+    }
+
+    private sendServerMessage(client: WebSocket, message: string): void {
+        this.sendMessage(client, {
+            content: message,
+            type: MessageType.ServerMessage,
+        })
     }
 }

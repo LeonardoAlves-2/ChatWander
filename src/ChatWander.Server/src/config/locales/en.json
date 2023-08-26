@@ -1,5 +1,7 @@
 {
     "waitingForPair": "Waiting for more users to pair...",
     "connectedToAnother": "You are connected to another person. Start chatting!",
-    "startChat": "You are connected to another person. Start chatting!"
+    "startChat": "You are connected to another person. Start chatting!",
+    "other": "Other",
+    "connectionClosed" : "Connection closed"
 }
