@@ -1,0 +1,9 @@
+<header-layout class="header-layout" />
+<section class="messages-container">
+  <messages-container [messages]="messages" />
+  <input-container
+    [disabled]="!isWebSocketConnected"
+    (onFindAnotherConnection)="findAnotherConnection()"
+    (onSendMessage)="sendMessage($event)"
+  />
+</section>

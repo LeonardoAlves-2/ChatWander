@@ -1,0 +1,19 @@
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  height: 93vh;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+
+  messages-container,
+  input-container {
+    width: 100%;
+  }
+
+  messages-container {
+    overflow-y: auto;
+  }
+}

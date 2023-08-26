@@ -1,0 +1,17 @@
+.messages-container {
+  overflow: auto;
+
+  &-chat {
+    background-color: #e0e0e0;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    max-width: 80%;
+    word-wrap: break-word;
+
+    @media (prefers-color-scheme: dark) {
+      color: #e5e5e6;
+      background-color: #433e47;
+    }
+  }
+}

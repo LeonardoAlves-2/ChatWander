@@ -1,0 +1,7 @@
+<div class="input-button-container">
+  <input [(ngModel)]="message" (keyup.enter)="onSend()" [disabled]="disabled" class="message-input" placeholder="Type your message..." />
+  <div class="input-button-actions">
+    <button (click)="onSend()" [disabled]="disabled" class="send-button">Send</button>
+    <button (click)="onFindAnotherConnection.emit()" class="find-button">Find Another Connection</button>
+  </div>
+</div>
