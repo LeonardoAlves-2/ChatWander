@@ -1,8 +1,9 @@
 import WebSocket, { WebSocketServer } from 'ws'
 import { Messages } from './messages'
-import i18n from 'i18n'
 import { Message, MessageType } from './models/messageModel'
 import { ConnectionStatus } from './models/statusModel'
+import i18n from 'i18n'
+import http from 'http'
 
 export class ChatServer {
     private webSocketServer: WebSocketServer
@@ -12,13 +13,16 @@ export class ChatServer {
     constructor(port: number) {
         this.webSocketServer = new WebSocketServer({ port })
 
-        this.webSocketServer.on('connection', (ws: WebSocket, req) =>
-            this.handleConnection(ws, req)
+        this.webSocketServer.on('connection', (ws: WebSocket, request) =>
+            this.handleConnection(ws, request)
         )
     }
 
-    private handleConnection(client: WebSocket, req: any): void {
-        const acceptLanguageHeader = req.headers['accept-language']
+    private handleConnection(
+        client: WebSocket,
+        request: http.IncomingMessage
+    ): void {
+        const acceptLanguageHeader = request.headers['accept-language']!
         i18n.setLocale(this.parseAcceptLanguageHeader(acceptLanguageHeader))
 
         this.clients.set(client, null)
