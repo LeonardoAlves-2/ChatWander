@@ -1,7 +1,7 @@
 <div class="input-button-container">
-  <input [(ngModel)]="message" (keyup.enter)="onSend()" [disabled]="disabled" class="message-input" placeholder="Type your message..." />
+  <input [(ngModel)]="message" (keyup.enter)="onSend()" [disabled]="disabled" class="message-input" [placeholder]="'TypeYourMessage' | translate" />
   <div class="input-button-actions">
-    <button (click)="onSend()" [disabled]="disabled" class="send-button">Send</button>
-    <button (click)="onFindAnotherConnection.emit()" class="find-button">Find Another Connection</button>
+    <button (click)="onSend()" [disabled]="disabled || !isMessageValid()" class="send-button">{{ 'Send' | translate }}</button>
+    <button (click)="onFindConnection()" class="find-button">{{ 'FindAnotherConnection' | translate }}</button>
   </div>
 </div>
